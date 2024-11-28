@@ -13,7 +13,7 @@ const PanContainer = ({
   close,
   setIsDragging,
 }: {
-  children: any;
+  children: React.ReactNode | React.ReactElement | any;
   close: () => void;
   setIsDragging: any;
 }) => {

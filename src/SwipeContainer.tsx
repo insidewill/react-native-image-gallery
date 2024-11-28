@@ -7,7 +7,7 @@ const SwipeContainer = ({
   setIsDragging,
   disableSwipe,
 }: {
-  children: any;
+  children: React.ReactNode | React.ReactElement | any;
   close: () => void;
   setIsDragging: any;
   disableSwipe?: boolean;

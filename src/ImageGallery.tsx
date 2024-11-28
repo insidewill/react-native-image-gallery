@@ -1,44 +1,58 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
-import {
-  Dimensions,
-  FlatList,
-  Image,
-  Modal,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import { ImageObject, IProps, RenderImageProps } from './types';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {Dimensions, FlatList, Image, Modal, StyleSheet, TouchableOpacity, View,} from 'react-native';
+import {ImageObject, IProps, RenderImageProps} from './types';
 import ImagePreview from './ImagePreview';
 import SwipeContainer from './SwipeContainer';
 
-const { height: deviceHeight, width: deviceWidth } = Dimensions.get('window');
+const {height: deviceHeight, width: deviceWidth} = Dimensions.get('window');
 
-const defaultProps = {
-  hideThumbs: false,
-  resizeMode: 'contain',
-  thumbColor: '#d9b44a',
-  thumbResizeMode: 'cover',
-  thumbSize: 48,
-};
+export interface ImageGalleryProps {
+  close?: () => void;
+  hideThumbs?: boolean;
+  images: ImageObject[];
+  initialIndex?: number;
+  isOpen: boolean;
+  renderCustomImage?: (
+    item: ImageObject,
+    index: number,
+    isActive: boolean
+  ) => React.ReactNode;
+  renderCustomThumb?: (
+    item: ImageObject,
+    index: number,
+    isActive: boolean
+  ) => React.ReactNode;
+  renderFooterComponent?: (
+    item: ImageObject,
+    index: number
+  ) => React.ReactNode;
+  renderHeaderComponent?: (
+    item: ImageObject,
+    index: number
+  ) => React.ReactNode;
+  resizeMode?: string;
+  thumbColor?: string;
+  thumbResizeMode?: string;
+  thumbSize?: number;
+  disableSwipe?: boolean;
+}
 
-const ImageGallery = (props: IProps & typeof defaultProps) => {
-  const {
-    close,
-    hideThumbs,
-    images,
-    initialIndex,
-    isOpen,
-    renderCustomImage,
-    renderCustomThumb,
-    renderFooterComponent,
-    renderHeaderComponent,
-    resizeMode,
-    thumbColor,
-    thumbResizeMode,
-    thumbSize,
-    disableSwipe,
-  } = props;
+const ImageGallery = ({
+                        close,
+                        hideThumbs = false,
+                        images,
+                        initialIndex,
+                        isOpen,
+                        renderCustomImage,
+                        renderCustomThumb,
+                        renderFooterComponent,
+                        renderHeaderComponent,
+                        resizeMode = 'contain',
+                        thumbColor = '#d9b44a',
+                        thumbResizeMode = 'cover',
+                        thumbSize = 48,
+                        disableSwipe,
+                      }: IProps & Partial<ImageGalleryProps>) => {
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -74,7 +88,7 @@ const ImageGallery = (props: IProps & typeof defaultProps) => {
     }
   };
 
-  const renderItem = ({ item, index }: RenderImageProps) => {
+  const renderItem = ({item, index}: RenderImageProps) => {
     return (
       <ImagePreview
         index={index}
@@ -86,7 +100,7 @@ const ImageGallery = (props: IProps & typeof defaultProps) => {
     );
   };
 
-  const renderThumb = ({ item, index }: RenderImageProps) => {
+  const renderThumb = ({item, index}: RenderImageProps) => {
     return (
       <TouchableOpacity
         onPress={() => scrollToIndex(index)}
@@ -100,14 +114,14 @@ const ImageGallery = (props: IProps & typeof defaultProps) => {
             style={
               activeIndex === index
                 ? [
-                    styles.thumb,
-                    styles.activeThumb,
-                    { borderColor: thumbColor },
-                    { width: thumbSize, height: thumbSize },
-                  ]
-                : [styles.thumb, { width: thumbSize, height: thumbSize }]
+                  styles.thumb,
+                  styles.activeThumb,
+                  {borderColor: thumbColor},
+                  {width: thumbSize, height: thumbSize},
+                ]
+                : [styles.thumb, {width: thumbSize, height: thumbSize}]
             }
-            source={{ uri: item.thumbUrl ? item.thumbUrl : item.url }}
+            source={{uri: item.thumbUrl ? item.thumbUrl : item.url}}
           />
         )}
       </TouchableOpacity>
@@ -115,7 +129,7 @@ const ImageGallery = (props: IProps & typeof defaultProps) => {
   };
 
   const onMomentumEnd = (e: any) => {
-    const { x } = e.nativeEvent.contentOffset;
+    const {x} = e.nativeEvent.contentOffset;
     scrollToIndex(Math.round(x / deviceWidth));
   };
 
@@ -127,7 +141,7 @@ const ImageGallery = (props: IProps & typeof defaultProps) => {
     }
   }, [isOpen, initialIndex]);
 
-  const getImageLayout = useCallback((_, index) => {
+  const getImageLayout = useCallback((_: any, index: number) => {
     return {
       index,
       length: deviceWidth,
@@ -136,7 +150,7 @@ const ImageGallery = (props: IProps & typeof defaultProps) => {
   }, []);
 
   const getThumbLayout = useCallback(
-    (_, index) => {
+    (_: any, index: number) => {
       return {
         index,
         length: thumbSize,
@@ -147,7 +161,11 @@ const ImageGallery = (props: IProps & typeof defaultProps) => {
   );
 
   return (
-    <Modal animationType={isOpen ? 'slide' : 'fade'} visible={isOpen}>
+    <Modal animationType={isOpen ? 'slide' : 'fade'} visible={isOpen} onRequestClose={() => {
+      if (close) {
+        close();
+      }
+    }}>
       <View style={styles.container}>
         <SwipeContainer
           disableSwipe={disableSwipe}
@@ -173,14 +191,14 @@ const ImageGallery = (props: IProps & typeof defaultProps) => {
             initialScrollIndex={initialIndex}
             getItemLayout={getThumbLayout}
             contentContainerStyle={styles.thumbnailListContainer}
-            data={props.images}
+            data={images}
             horizontal
             keyExtractor={keyExtractorThumb}
             pagingEnabled
             ref={bottomRef}
             renderItem={renderThumb}
             showsHorizontalScrollIndicator={false}
-            style={[styles.bottomFlatlist, { bottom: thumbSize }]}
+            style={[styles.bottomFlatlist, {bottom: thumbSize}]}
           />
         )}
         {renderHeaderComponent ? (
@@ -232,7 +250,5 @@ const styles = StyleSheet.create({
     position: 'absolute',
   },
 });
-
-ImageGallery.defaultProps = defaultProps;
 
 export default ImageGallery;
